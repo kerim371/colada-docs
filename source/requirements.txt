@@ -1,0 +1,4 @@
+myst-parser
+sphinx-markdown-tables
+sphinx-notfound-page
+linkify-it-py
