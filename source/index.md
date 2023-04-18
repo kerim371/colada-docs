@@ -6,8 +6,7 @@ To see the fundamential documentation please  refer to the [Slicer 3D documentat
 ```{toctree}
 :maxdepth: 2
 
-user_guide/about
-
+user_guide/overview/overview
 user_guide/getting_started/getting_started
 user_guide/user_interface/user_interface
 user_guide/application_settings/application_settings
