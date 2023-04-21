@@ -10,6 +10,8 @@ user_guide/overview/overview
 user_guide/getting_started/getting_started
 user_guide/user_interface/user_interface
 user_guide/application_settings/application_settings
+
+user_guide/tutorials/tutorials
 ```
 
 Indices and tables
