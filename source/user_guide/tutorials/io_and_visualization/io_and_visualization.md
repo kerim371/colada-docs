@@ -90,7 +90,7 @@ Or for Geo Volume it defines units of each scalar value of data (pressure for ex
 
 *To be confident that your units are convertable one may use the* [web service](http://13.52.135.81/convert).
 
-## Data visualization
+#### Geo Volume visualization
 
 After data is read it should appear in the Geo Volume tree.
 As Geo Volume may be pretty big and not all the time the user wants to load oll data to the memory, after clicking on the checkbox the module will be switched to `GeoVolumes` where one can select a subset of the data to load.
@@ -151,3 +151,84 @@ In this case an object will be rendered as Volume.
 Rendered Volume is controlled in `Volume Rendering` module.
 `Volume` module is for usual representation using Slices.
 Check these modules to see how you can customize the visualization.
+
+### Read SEGY as Seismic
+
+To read SEGY as Seismic right click on *Seismic* tree view to invoke menu `Import->SEGY`.
+Add the same files as we have read with Geo Volume reader.
+
+Carefully set all the parameters.
+it is important to set survey type (2D/3D), data type (stack/prestack), domain, units ,sampling rate.
+
+:::{note}
+
+Colada uses `Z` values decreases downwards. That means when reading usual SEGY file as Seismic one need to set negative sampling rate.
+
+:::
+
+```{image} seis_reader.png
+:alt: Colada seismic reader
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+Provided SEGY files have mixed trace headers. `INLINE/XLINE` are either missing or switched with `CDP_X/CDP_Y` (for 3D). 
+`CDP_X/CDP_Y` are switched with `SRCX/SRCY` (for 2D).
+
+To fix that there is table in the middle of the window.
+The point is to set the correct trace header names for all trace header offsets.
+If you do this correctly then all modified items in the table will be colored by <span style="color:green">green</span> color. Be sure there is no <span style="color:red">red</span> colored boxes.
+
+#### Seismic visualization
+
+When working with Seismic it usually requires some kind of a sorting.
+As Colada provides means to work with STACK as well as with STACK seismic the user should be familiar with seismic sorting.
+
+Colada doesn't resort data itself but it rather writes trace indices for every primary key value (`pKey`).
+For example if we want to get `INLINE->XLINE` then we need to prepare sorting for `INLINE` as it is a primary key.
+The sorting is efficient when the number of unique values a lot less of the amount of traces.
+Thus sorting for `CDP/SP/INLINE/XLINE` etc are pretty effective.
+
+So click on the checkbox in the Seismic Tree and *Seismic* module appear.
+Expand sorting tab and add `INLINE` sorting.
+
+Then `X/Y` coord headers as `CDP_X/CDP_Y` and load it.
+
+Seismic may be loaded as:
+
+1) Volume (rectangular grid, 3D)
+2) Volumetric mesh (unstructured grid, 3D)
+3) Surface (2D)
+
+*Volume* uses interpolation if the original data has random XY coordinates.
+
+*Volumetric* mesh use data as is but it requires about four times more RAM tan Volume.
+
+*Surface* is for 2D selected data.
+
+For example we can load the same 2D seismic `lineA` as Volume and then as Surface and see the difference.
+
+```{image} seismic_displayed_2d.png
+:alt: Colada seismic displayed 2D
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+In the same way we can visualize 3D seismic as volume. 
+
+```{image} seismic_displayed_2d_3d.png
+:alt: Colada seismic displayed 2D and 3D
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+Volume visualization is controlled by `Volumes` and `Volume Rendering` modules.
+
+Surface and Volumetric mesh is controlled by `Models` module.
+
+All the loaded data is displayed in `Data` module.
+
+Try to play with it.
