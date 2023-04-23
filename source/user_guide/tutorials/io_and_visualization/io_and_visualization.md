@@ -154,7 +154,7 @@ Check these modules to see how you can customize the visualization.
 
 ### Read SEGY as Seismic
 
-To read SEGY as Seismic right click on *Seismic* tree view to invoke menu `Import->SEGY`.
+To read SEGY as Seismic right click on *Seismic* treeview to invoke menu `Import->SEGY`.
 Add the same files as we have read with Geo Volume reader.
 
 Carefully set all the parameters.
@@ -519,7 +519,7 @@ Reading LAS takes some time.
 
 ### Well Visualization
 
-After it is finished go to the Well Tree view select some wells and check them.
+After it is finished go to the Well treeview select some wells and check them.
 If you are lucky wells appear in the scene.
 If not then choose `87-AX-3` it contains both trajectory and logs.
 Go to the *Wells* module and select loaded well.
