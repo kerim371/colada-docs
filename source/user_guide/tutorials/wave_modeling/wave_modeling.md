@@ -171,6 +171,20 @@ Also `nX,nY,nZ` must be `> 0`.
 
 :::
 
+### Velocity model visualization
+
+Now open the generated files in Colada i.e. right click on Geo Volume treeview `Add container` and add generated model. 
+
+Load Geo Volume. 
+The picture should be similar to this one:
+
+```{image} model_2d.png
+:alt: Colada velocity model 2d
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
 ## Geometry for 2D model
 
 There is no need to write the algorithm for calculating geometry.
@@ -247,20 +261,51 @@ if not status:
 
 geomcnt.getH5File().flush()
 ```
-Basically that is.
-This requires only accuracy and some basic Python knowledge.
 
-## Velocity model visualization
+For every shot the receivers are spread over the whole model. 
+To move receiver along with sources set `moveRec = True`.
 
-Now open the generated files in Colada i.e. right click on Geo Volume treeview `Add container` and and add generated model. 
-Do the same with Seismic treeview and generated geometry container.
+### Geometry check
 
-Load Geo Volume. 
-The picture should be similar to this one:
+After geometry was generated load it to the Colada i.e. right click on Seismic treeview `Add container` and add the geometry. 
 
-```{image} model_2d.png
-:alt: Colada velocity model 2d
+First thing to do is to add sorting.
+As we have PRESTACK geometry then we can add `SP` sorting.
+For that go to the `Seismic` module, set active seismic at the top (one may use drag&drop from treeview), open *Sorting* section and double click on `SP` header.
+This will cause `SP` to appear in the right list.
+Then click `Add Sorting`.
+
+After that `SP` sorted data may be loaded either as any type of mesh or loaded to table.
+We will load it to table and plot.
+
+Open *Load to Table* section, click on combobox *Select a Table->Create new Table*.
+Most widgets become enabled. In the `Sorted trace headers` section set `SP` as *primary key* (PKey). Then click on *plus* button to add secondary key (SKey) and set it to `GRPX` and click *Load sorted trace headers*.
+
+Change layout by clicking the button on the toolbar similar to this ![](LayoutFull.png) and choose one containing *plot*. 
+
+Go to the *Plots* module click `Create new PlotChart`.
+This simply creates new plot.
+To add data to it click `Create new PlotSeries`.
+Then click on `Series` tab. Set the parameters:
+* Input table: *Table*
+* Plot type *Scatter*
+* X Axis column: *GRPX*
+* Y Axis column: *SP*
+* Marker style: *square*
+* Line style: *None*
+
+After some manipulations one can achieve something like that:
+
+```{image} plot_geometry_2d.png
+:alt: Colada plot geometry 2D
 :class: bg-primary
 :scale: 70%
 :align: center
 ```
+
+:::{note}
+
+Loaded trace headers are also available in *Tables* module.
+But be aware that tables with n*1000 rows work slow and may greatly reduce the perfomance.
+
+:::
