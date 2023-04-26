@@ -1,4 +1,4 @@
-# Wave Modeling
+# Wave Modeling: simple 2D model
 
 Before starting to work with wave modeling/migration/inversion we must have at least two things:
 1) velocity model
@@ -49,19 +49,21 @@ ORIENTATION = 0.0
 # model params (x,z)
 o = (0,0)
 d = (12.5,12.5)
-n = (500,100)
-n1 = int(round(n[1]/2)) # first reflector depth
+n = (300,100)
+n1 = int(round(n[1]/3)) # first reflector depth
+n2 = int(round(2*n[1]/3)) # second reflector depth
 
-# velocities for the first and second layers
+# velocities for the layers
 v1 = 1.5
-v2 = 3
+v2 = 2
+v3 = 2.5
 
 # is used to smooth velocity model
 smooth_radius = 20
 ```
 Most of this should be pretty understandable
 The most important here is model parameters like size `n` of the model, origin `o`, spacings `d`.
-`v1` and `v2` define first layer and second layed velocities respectively.
+`v1,v2,v3` define first, second and third layer velocities respectively.
 `smooth_radius` defines the number of points per axis to apply filter to the model to get smoothed velocity model.
 
 Second step is to create velocity model represented by `numpy` array. 
@@ -73,7 +75,8 @@ z = np.arange(o[1],o[1]+d[1]*(n[1]-1),d[1])
 
 data = np.zeros(n[::-1]) # reverse `n` so the `data.shape = [nz,nx]`
 data[:n1,:] = v1
-data[n1:,:] = v2
+data[n1:n2,:] = v2
+data[n2:,:] = v3
 data_smooth = sp.ndimage.uniform_filter(data, smooth_radius)
 
 # flip Z axis as h5geo stores volumes in low-to-high direction (origin is lower left corner)
@@ -82,7 +85,7 @@ data = np.asfortranarray(np.flip(data,0), dtype=np.float32)
 data_smooth = np.asfortranarray(np.flip(data_smooth,0), dtype=np.float32)
 ```
 
-Here the most important is to understand which direction correspond to wich axis.
+The most important here is to understand which direction correspond to wich axis.
 If we work with 2D model then numpy array should be of shape `[nz,nx]`.
 `data` is our model (`numpy` array).
 `data_smooth` is smoothed model.
@@ -196,11 +199,11 @@ It is already done in `h5geo`.
 
 So we start by setting the initial data for geometry:
 ```python
-nSamp = 600
+nSamp = 800
 sampRate = -2.0
 src_x0 = 1500
-src_dx = 500
-src_nx = 7
+src_dx = 100
+src_nx = 8
 src_y0 = 0
 src_dy = 0
 src_ny = 1
@@ -269,10 +272,10 @@ geomcnt.getH5File().flush()
 slicer.util.mainWindow().emitH5FileToBeAdded(geomcnt.getH5File().getFileName())
 ```
 
-The model has length 6250m.
-Source geometry contains 7 sources at positions from 1500 to 4500m with 500m step.
-Receivers are moved with sources (`moveRec = True`), that means for the first source receivers are spread from 0m to 3000m with 50m step. 
-For the second source receivers are spread from 500m to 3500m and so on. 
+The model has length 3750m.
+Source geometry contains 8 sources at positions from 1500 to 2200m with 100m step.
+Receivers are moved along with sources (`moveRec = True`), that means for the first source receivers are spread from 0m to 3000m with 50m step. 
+For the second source receivers are spread from 100m to 3100m and so on. 
 
 ### Geometry check
 
@@ -318,3 +321,138 @@ Loaded trace headers are also available in *Tables* module.
 But be aware that tables with n*1000 rows work slow and may greatly reduce the perfomance.
 
 :::
+
+## Forward Wave Modeling
+
+Go to the `Wave Modeling` module.
+
+Physical Parameters:
+* Velocity: previously generated `model_2D.h5`
+
+Field Records (Geometry):
+* File format: H5SEIS
+* Geometry: previously generated `geom_2D.h5`
+* PKey (Primary Key): SP
+* Source x: SRCX
+* Receiver x: GRPX
+
+Computing Settings:
+* Computing Type: Forward Modeling
+* Set *Save file prefix* (`shots.h5`) and *Output dir*
+* Other settings may be changed by your choice
+
+After settings are set something similar should be resulted:
+
+```{image} fm_settings.png
+:alt: Colada forward modeling settings
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+:::{note}
+
+Muting is not supposed to be used with *Forward Modeling*.
+
+:::
+
+After calculations are done we can visualize model overlayed by computed shots (first shot for example):
+
+```{image} modeled_shot.png
+:alt: Colada modeled shot
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+## Reverse Time Migration (RTM)
+
+To compute RTM first of all we need to set previously computed shots as geometry.
+
+Then in *Computing Settings* set *Computing type: RTM*.
+
+Set *Save file prefix* as *rtm.h5* and *Output dir* to Geo Volumes.
+
+To achieve good results we should apply muting.
+Basically we should mute water layer (412.5m) and turning waves (Data mute).
+We will use model muting 412.5m without taper.
+In *Mute data* set *mute turning*. 
+*Mute t0* to 150ms (approximate wavelet length) and *Mute data velocity* to 1.5km/s (water velocity).
+
+2D velocity model overlayed with RTM is shown below:
+
+```{image} rtm.png
+:alt: Colada rtm
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+:::{note}
+
+In practice field data must contain only reflected waves (our data have both direct and reflected waves). 
+Also in this example source step is too big (500m).
+That is why the result is not clean.
+
+:::
+
+## Full Waveform Inversion (FWI)
+
+As we know the goal of FWI is to make starting velocity model more precise.
+Thus we need to set smoothed velocity model *model_2D_smooth* as input.
+The geometry is the same shots that were used for RTM.
+And in *Computing Settings* we need to set *Computing type: FWI*.
+*Save file prefix* as *fwi.h5* and *Output dir* to Geo Volumes.
+Model muting is 412.5m without taper.
+We will not use *Data muting* but in practice FWI works with turnings waves.
+And important thing is to turn on *Replace water velocity/density*. 
+This will replace velocity (and density if present) at each iteration.
+
+In *FWI Settings* set min/max velocities to 1000 and 3500 respectively.
+
+After passing 10 iteration we may get result similar to shown below:
+
+```{image} fwi.png
+:alt: Colada fwi
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+At left is the smoothed starting model and at right - result of FWI 10th iteration.
+
+To see the convergence we can copy values from *fhistory* dataset (open with HDFVIEW for example) and copy them to new table in *Tables* module. 
+Then plot it.
+
+```{image} fwi_convergence.png
+:alt: Colada fwi convergence
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+## Least-Squares Reverse Time Migration (LSRTM)
+
+To run LSRTM select true velocity model as *Input*.
+*Geometry* same generated shots.
+In *Computing Settings* set *Save file prefix* to *lsrtm.h5* and *Output dir* to Geo Volumes.
+use same mutings that were used in conventional RTM and run.
+
+```{image} rtm_lsrtm.png
+:alt: Colada rtm and lsrtm
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+Residual norm and other convergence attribute may be found in created *lsrtm.h5* container (use HDFVIEW):
+
+```{image} lsrtm_rnorm.png
+:alt: Colada lsrtm residual norm
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+Congratulations! 
+We hope you enjoyed this tutorial.
