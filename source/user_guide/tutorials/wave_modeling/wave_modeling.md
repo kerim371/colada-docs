@@ -24,6 +24,7 @@ import numpy as np
 import scipy as sp
 import scipy.ndimage
 import colada
+import slicer
 import os
 
 # to be able to open hdf5 container in HDFVIEW
@@ -48,7 +49,7 @@ ORIENTATION = 0.0
 # model params (x,z)
 o = (0,0)
 d = (12.5,12.5)
-n = (1000,100)
+n = (500,100)
 n1 = int(round(n[1]/2)) # first reflector depth
 
 # velocities for the first and second layers
@@ -148,6 +149,9 @@ if not status:
   raise RuntimeError(f"Unable to write data to Geo Volume: {out_vol_name_smooth}")
 
 volcnt.getH5File().flush()
+
+# add geo volume container to treeview
+slicer.util.mainWindow().emitH5FileToBeAdded(volcnt.getH5File().getFileName())
 ```
 The variable `p` is used to create new `H5Vol` object.
 Almost all its fields are self descridable.
@@ -173,7 +177,7 @@ Also `nX,nY,nZ` must be `> 0`.
 
 ### Velocity model visualization
 
-Now open the generated files in Colada i.e. right click on Geo Volume treeview `Add container` and add generated model. 
+Generated model should be visible in Geo Volume treeview.
 
 Load Geo Volume. 
 The picture should be similar to this one:
@@ -192,24 +196,24 @@ It is already done in `h5geo`.
 
 So we start by setting the initial data for geometry:
 ```python
-nSamp = 500
-sampRate = -4.0
-src_x0 = o[0]
-src_dx = 1000
-src_nx = int(np.ceil((x[-1]-x[0])/src_dx))
+nSamp = 600
+sampRate = -2.0
+src_x0 = 1500
+src_dx = 500
+src_nx = 7
 src_y0 = 0
 src_dy = 0
 src_ny = 1
 src_z = o[1]
 
-rec_x0 = o[0]
-rec_dx = 100
-rec_nx = int(np.ceil((x[-1]-x[0])/rec_dx))
+rec_x0 = 0
+rec_dx = 50
+rec_nx = 61
 rec_y0 = 0
 rec_dy = 0
 rec_ny = 1
 rec_z = o[1]
-moveRec = False
+moveRec = True
 ```
 
 Then we simpy fill `H5SeisParam` fields to create new `H5Seis` object within seismic container and call the function `generatePRESTKGeometry` to generate PRESTACK geometry:
@@ -225,7 +229,7 @@ p.domain = h5geo.Domain.TWT
 p.dataType = h5geo.SeisDataType.PRESTACK
 p.surveyType = h5geo.SurveyType.THREE_D
 p.nTrc = 100
-p.nSamp = 100
+p.nSamp = nSamp
 p.srd = 0
 p.trcChunk = 100
 p.stdChunk = 100
@@ -260,26 +264,31 @@ if not status:
   raise RuntimeError(f"Unable to generate geometry: {out_geom_name}")
 
 geomcnt.getH5File().flush()
+
+# add geometry container to treeview
+slicer.util.mainWindow().emitH5FileToBeAdded(geomcnt.getH5File().getFileName())
 ```
 
-For every shot the receivers are spread over the whole model. 
-To move receiver along with sources set `moveRec = True`.
+The model has length 6250m.
+Source geometry contains 7 sources at positions from 1500 to 4500m with 500m step.
+Receivers are moved with sources (`moveRec = True`), that means for the first source receivers are spread from 0m to 3000m with 50m step. 
+For the second source receivers are spread from 500m to 3500m and so on. 
 
 ### Geometry check
 
-After geometry was generated load it to the Colada i.e. right click on Seismic treeview `Add container` and add the geometry. 
+Geometry container should be added to the Seismic treeview. 
 
 First thing to do is to add sorting.
-As we have PRESTACK geometry then we can add `SP` sorting.
-For that go to the `Seismic` module, set active seismic at the top (one may use drag&drop from treeview), open *Sorting* section and double click on `SP` header.
-This will cause `SP` to appear in the right list.
+As we have PRESTACK geometry then we can add `SRCX` sorting.
+For that go to the `Seismic` module, set active seismic at the top (one may use drag&drop from treeview), open *Sorting* section and double click on `SRCX` header.
+This will cause `SRCX` to appear in the right list.
 Then click `Add Sorting`.
 
-After that `SP` sorted data may be loaded either as any type of mesh or loaded to table.
+After that `SRCX` sorted data may be loaded either as any type of mesh or loaded to table.
 We will load it to table and plot.
 
 Open *Load to Table* section, click on combobox *Select a Table->Create new Table*.
-Most widgets become enabled. In the `Sorted trace headers` section set `SP` as *primary key* (PKey). Then click on *plus* button to add secondary key (SKey) and set it to `GRPX` and click *Load sorted trace headers*.
+Most widgets become enabled. In the `Sorted trace headers` section set `SRCX` as *primary key* (PKey). Then click on *plus* button to add secondary key (SKey) and set it to `GRPX` and click *Load sorted trace headers*.
 
 Change layout by clicking the button on the toolbar similar to this ![](LayoutFull.png) and choose one containing *plot*. 
 
@@ -287,10 +296,10 @@ Go to the *Plots* module click `Create new PlotChart`.
 This simply creates new plot.
 To add data to it click `Create new PlotSeries`.
 Then click on `Series` tab. Set the parameters:
-* Input table: *Table*
 * Plot type *Scatter*
+* Input table: *Table*
 * X Axis column: *GRPX*
-* Y Axis column: *SP*
+* Y Axis column: *SRCX*
 * Marker style: *square*
 * Line style: *None*
 
