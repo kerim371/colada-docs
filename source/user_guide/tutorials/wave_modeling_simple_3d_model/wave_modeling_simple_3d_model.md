@@ -1,11 +1,11 @@
 # Wave Modeling: simple 3D model
 
 This tutorial is identical to [Simple Wave Modeling 2D](../wave_modeling_simple_2d_model/wave_modeling_simple_2d_model.md) but is aimed at 3D modeling.
-We suppose that are familiar with the previous tutorials.
+We suppose you are familiar with the previous tutorials.
 
 ## 3D velocity model building
 
-Start model building from initial parameters.
+Start model building from setting initial parameters:
 
 ```python
 from h5geopy import h5geo
@@ -51,7 +51,12 @@ v3 = 2.5
 smooth_radius = 20
 ```
 
-Then create model:
+The model size is [nx,ny,nz]=[300,200,100] points.
+Distance between two nearest points is equal at each direction and equal to 12.5m.
+Thus model length in each direction [x,y,z]=[3737.5m,2487.5m,1237.5m].
+Velocities of three layers: 1.5, 2, 2.5km/s.
+
+The following code builds velocity model:
 
 ```python
 x = np.arange(o[0],o[0]+d[0]*(n[0]-1),d[0])
@@ -70,7 +75,8 @@ data = np.asfortranarray(np.flip(data,0), dtype=np.float32)
 data_smooth = np.asfortranarray(np.flip(data_smooth,0), dtype=np.float32)
 ```
 
-Write data:
+Now we need to write previously built velocity model to `H5Vol` object (Geo Volume):
+
 ```python
 p = h5geo.H5VolParam()
 p.spatialReference = SPATIAL_REFERENCE
@@ -136,7 +142,7 @@ If `HDF5_USE_FILE_LOCKING=FALSE` then you are risking to break the file if its c
 
 ### Velocity model visualization
 
-Prepared 3D velocity model:
+Picture below is prepared 3D velocity model visualized in Colada:
 
 ```{image} model_3d.png
 :alt: Colada velocity model 3d
@@ -146,6 +152,8 @@ Prepared 3D velocity model:
 ```
 
 ## Geometry for 3D model
+
+Start by setting initial data for 3D geometry:
 
 ```python
 # timings
@@ -227,7 +235,6 @@ del geom
 del geomcnt
 ```
 
-The size xy: 3737.5m*2487.5m
 Source geometry along x-axis contains 8 sources at positions from 1500 to 2200m with 100m step.
 Along y-axis: from 1000 to 1500m wtih 100m step.
 Receivers are spread in in 1000m*1000m (i.e. sp+-500m) with 50m step and they are moved along with sources (`moveRec = True`).
@@ -307,5 +314,5 @@ In *FWI Settings* set min/max velocities to 1000 and 3500 respectively.
 :align: center
 ```
 
-Upper pictures show starting smoothed model.
-Lower - result 10th FWI iteration.
+Upper pictures show starting smoothed model at XZ and YZ orientations.
+Lower - result of 10th FWI iteration.

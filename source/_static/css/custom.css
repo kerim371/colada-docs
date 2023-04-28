@@ -56,16 +56,16 @@ p{
   background:#ffbb33;
 }
 .wy-menu-vertical li.current {
-  background:#f8f8f8;
+  background:#e4e4e4;
 }
 .wy-menu-vertical li.toctree-l2.current>a, .wy-menu-vertical li.toctree-l2.current li.toctree-l3>a {
-  background:#bdbdbd;
+  background:#eeeeee;
 }
 .wy-menu-vertical li.toctree-l2.current>a:hover, .wy-menu-vertical li.toctree-l2.current li.toctree-l3>a:hover {
   background:#ffcc66;
 }
 .wy-menu-vertical li.toctree-l3.current>a, .wy-menu-vertical li.toctree-l3.current li.toctree-l4>a {
-  background: #d1d1d1;
+  background: #f8f8f8;
 }
 .wy-menu-vertical li.toctree-l3.current>a:hover, .wy-menu-vertical li.toctree-l3.current li.toctree-l4>a:hover {
   background: #ffdd99;
