@@ -143,7 +143,7 @@ if not status:
 
 # create Geo Volume for smotthed model
 volsmooth = volcnt.createVol(out_vol_name_smooth, p, h5geo.CreationType.CREATE_OR_OVERWRITE)
-if not vol:
+if not volsmooth:
   raise RuntimeError(f"Unable to create Geo Volume: {out_vol_name_smooth}")
 
 # write smoothed data to Geo Volume
@@ -151,11 +151,24 @@ status = volsmooth.writeData(data_smooth.ravel(), 0,0,0,p.nX,p.nY,p.nZ, DATA_UNI
 if not status:
   raise RuntimeError(f"Unable to write data to Geo Volume: {out_vol_name_smooth}")
 
-volcnt.getH5File().flush()
-
 # add geo volume container to treeview
 slicer.util.mainWindow().emitH5FileToBeAdded(volcnt.getH5File().getFileName())
+
+# don't forget to close h5geo (hdf5) objects
+del vol
+del volsmooth
+del volcnt
 ```
+
+:::{warning}
+
+*h5geo* objects hold reference to *h5gt* object wich is *hdf5* wrapper.
+It is **extremely important** to close these objects right after you've done working with them (delete variable is one the possible ways).
+If file is opened and `HDF5_USE_FILE_LOCKING=TRUE` then this file will be unavailable for other processes.
+If `HDF5_USE_FILE_LOCKING=FALSE` then you are risking to break the file if its content is modified from another process.
+
+:::
+
 The variable `p` is used to create new `H5Vol` object.
 Almost all its fields are self descridable.
 
@@ -167,9 +180,6 @@ Almost all its fields are self descridable.
 Chunking is important for IO perfomance. 
 In this case we are trying to imitate `ZGY` format using chunking equal to 64.
 `compression_level` is used to compress the data.
-
-`flush()` tries to flush the data to the disk.
-This makes us confident that the data is actually written.
 
 :::{note}
 
@@ -199,8 +209,11 @@ It is already done in `h5geo`.
 
 So we start by setting the initial data for geometry:
 ```python
+# timings
 nSamp = 800
 sampRate = -2.0
+
+# geometry
 src_x0 = 1500
 src_dx = 100
 src_nx = 8
@@ -220,6 +233,7 @@ moveRec = True
 ```
 
 Then we simpy fill `H5SeisParam` fields to create new `H5Seis` object within seismic container and call the function `generatePRESTKGeometry` to generate PRESTACK geometry:
+
 ```python
 # h5geo parameters to create new H5Seis object
 p = h5geo.H5SeisParam()
@@ -241,7 +255,7 @@ p.stdChunk = 100
 geomcnt = h5geo.createSeisContainerByName(
       out_seis_dir + out_geomcnt_name,
       h5geo.CreationType.OPEN_OR_CREATE)
-if not volcnt:
+if not geomcnt:
   raise RuntimeError(f"Unable to create Seis container: {out_geomcnt_name}")
 
 # create H5Seis object
@@ -266,13 +280,15 @@ status = geom.generatePRESTKGeometry(
 if not status:
   raise RuntimeError(f"Unable to generate geometry: {out_geom_name}")
 
-geomcnt.getH5File().flush()
-
 # add geometry container to treeview
 slicer.util.mainWindow().emitH5FileToBeAdded(geomcnt.getH5File().getFileName())
+
+# don't forget to close h5geo (hdf5) objects
+del geom
+del geomcnt
 ```
 
-The model has length 3750m.
+The model has length 3737.5m.
 Source geometry contains 8 sources at positions from 1500 to 2200m with 100m step.
 Receivers are moved along with sources (`moveRec = True`), that means for the first source receivers are spread from 0m to 3000m with 50m step. 
 For the second source receivers are spread from 100m to 3100m and so on. 
@@ -322,7 +338,7 @@ But be aware that tables with n*1000 rows work slow and may greatly reduce the p
 
 :::
 
-## Forward Wave Modeling
+## Forward Modeling
 
 Go to the `Wave Modeling` module.
 
@@ -396,6 +412,29 @@ That is why the result is not clean.
 
 :::
 
+## Least-Squares Reverse Time Migration (LSRTM)
+
+To run LSRTM select true velocity model as *Input*.
+*Geometry* same generated shots.
+In *Computing Settings* set *Save file prefix* to *lsrtm.h5* and *Output dir* to Geo Volumes.
+Use same mutings that were used in conventional RTM and run.
+
+```{image} rtm_lsrtm.png
+:alt: Colada rtm and lsrtm
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
+Residual norm and other convergence attribute may be found in created *lsrtm.h5* container (use HDFVIEW):
+
+```{image} lsrtm_rnorm.png
+:alt: Colada lsrtm residual norm
+:class: bg-primary
+:scale: 70%
+:align: center
+```
+
 ## Full Waveform Inversion (FWI)
 
 As we know the goal of FWI is to make starting velocity model more precise.
@@ -405,7 +444,7 @@ And in *Computing Settings* we need to set *Computing type: FWI*.
 *Save file prefix* as *fwi.h5* and *Output dir* to Geo Volumes.
 Model muting is 412.5m without taper.
 We will not use *Data muting* but in practice FWI works with turnings waves.
-And important thing is to turn on *Replace water velocity/density*. 
+And **important thing** is to turn on *Replace water velocity/density*. 
 This will replace velocity (and density if present) at each iteration.
 
 In *FWI Settings* set min/max velocities to 1000 and 3500 respectively.
@@ -426,29 +465,6 @@ Then plot it.
 
 ```{image} fwi_convergence.png
 :alt: Colada fwi convergence
-:class: bg-primary
-:scale: 70%
-:align: center
-```
-
-## Least-Squares Reverse Time Migration (LSRTM)
-
-To run LSRTM select true velocity model as *Input*.
-*Geometry* same generated shots.
-In *Computing Settings* set *Save file prefix* to *lsrtm.h5* and *Output dir* to Geo Volumes.
-use same mutings that were used in conventional RTM and run.
-
-```{image} rtm_lsrtm.png
-:alt: Colada rtm and lsrtm
-:class: bg-primary
-:scale: 70%
-:align: center
-```
-
-Residual norm and other convergence attribute may be found in created *lsrtm.h5* container (use HDFVIEW):
-
-```{image} lsrtm_rnorm.png
-:alt: Colada lsrtm residual norm
 :class: bg-primary
 :scale: 70%
 :align: center
