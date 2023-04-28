@@ -282,7 +282,7 @@ Velocity model overlayed with RTM:
 ```
 
 ## Least-Squares Reverse Time Migration (LSRTM)
-To run LSRTM about **30Gb of RAM** is requires.
+To run LSRTM about **30Gb of RAM** is required.
 
 Select true velocity model as *Input*.
 *Geometry* same generated shots.
