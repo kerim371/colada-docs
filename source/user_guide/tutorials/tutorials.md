@@ -8,4 +8,5 @@ The following tutorials are available:
 io_and_visualization/io_and_visualization
 wave_modeling_simple_2d_model/wave_modeling_simple_2d_model
 wave_modeling_simple_3d_model/wave_modeling_simple_3d_model
+wave_modeling_migration_from_tomograhy/wave_modeling_migration_from_tomograhy
 ```
