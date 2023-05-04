@@ -134,7 +134,7 @@ del volcnt
 :::{warning}
 
 *h5geo* objects hold reference to *h5gt* object wich is *hdf5* wrapper.
-It is **extremely important** to close these objects right after you've done working with them (delete variable is one the possible ways).
+It is **extremely important** to close these objects right after you've done working with them (delete variable is one of the possible ways).
 If file is opened and `HDF5_USE_FILE_LOCKING=TRUE` then this file will be unavailable for other processes.
 If `HDF5_USE_FILE_LOCKING=FALSE` then you are risking to break the file if its content is modified from another process.
 
