@@ -16,6 +16,13 @@ Read parameters:
 6) Byte start: X: *73*
 7) Byte start: Y: *77*
 
+```{image} reader.png
+:alt: reader
+:class: bg-primary
+:scale: 60%
+:align: center
+```
+
 :::{warning}
 
 As some trace headers are incorrect in this SEGY (see few last traces) most likely volume parameters (origin, spacings) should be fixed.
