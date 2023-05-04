@@ -25,7 +25,7 @@ Read parameters:
 
 :::{warning}
 
-As some trace headers are incorrect in this SEGY (see few last traces) most likely volume parameters (origin, spacings) should be fixed.
+As some trace headers are incorrect in this SEGY (see few last traces) most likely volume parameters (origin, spacings) should be manually fixed then.
 For that after SEGY is read go to the *Geo Volumes* module and select volume read.
 Make sure that origin is [0,0,-99900] and spacings are [150, 1, 100] decimeters.
 After setting this and clicking *Update* button the velocity model is ready.
