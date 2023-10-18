@@ -76,13 +76,13 @@ html_logo = '../logo_64x64.png'
 html_theme_options = {
     'logo_only': False,
     'display_version': True,
-    'includehidden': False,
-    # Toc options
-    'collapse_navigation': True,
-    'sticky_navigation': True,
-    'navigation_depth': 4,
-    'includehidden': True,
-    'titles_only': False
+    # 'includehidden': False,
+    # # Toc options
+    # 'collapse_navigation': True,
+    # 'sticky_navigation': True,
+    # 'navigation_depth': 4,
+    # 'includehidden': True,
+    # 'titles_only': False
 }
 
 # These paths are either relative to html_static_path
