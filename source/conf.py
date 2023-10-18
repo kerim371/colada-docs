@@ -63,10 +63,12 @@ notfound_context = {
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-import sphinx_rtd_theme
+
+# NO NEED TO IMPORT `sphinx_rtd_theme` as it leads to this problem: https://github.com/readthedocs/readthedocs.org/issues/10841#issuecomment-1768989200
+# import sphinx_rtd_theme
+# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
