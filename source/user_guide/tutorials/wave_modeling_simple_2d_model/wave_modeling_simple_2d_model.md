@@ -38,6 +38,7 @@ out_vol_name = "model_2D"
 out_vol_name_smooth = "model_2D_smooth"
 out_geomcnt_name = "geom_2D.h5"
 out_geom_name = "geom_2D"
+out_geom_segy_name = "geom_2D.sgy"
 
 SPATIAL_REFERENCE = h5geo.sr.getAuthName() + ":" + h5geo.sr.getAuthCode()
 LENGTH_UNITS = "m"
@@ -277,6 +278,9 @@ status = geom.generatePRESTKGeometry(
     ORIENTATION,
     moveRec)
 
+# export geometry to SEGY
+geom.exportToSEGY(out_seis_dir + out_geom_segy_name, 10000, h5geo.Endian.Big)
+
 if not status:
   raise RuntimeError(f"Unable to generate geometry: {out_geom_name}")
 
@@ -347,14 +351,11 @@ Physical Parameters:
 
 Field Records (Geometry):
 * File format: H5SEIS
-* Geometry: previously generated `geom_2D.h5`
-* PKey (Primary Key): SP
-* Source x: SRCX
-* Receiver x: GRPX
+* Geometry: previously generated `geom_2D.sgy`
 
 Computing Settings:
 * Computing Type: Forward Modeling
-* Set *Save file prefix* (`shots.h5`) and *Output dir*
+* Set *Save file prefix* (`shot`) and *Output dir*
 * Other settings may be changed by your choice
 
 After settings are set something similar should be resulted:

@@ -27,6 +27,7 @@ out_vol_name = "model_3D"
 out_vol_name_smooth = "model_3D_smooth"
 out_geomcnt_name = "geom_3D.h5"
 out_geom_name = "geom_3D"
+out_geom_segy_name = "geom_2D.sgy"
 
 SPATIAL_REFERENCE = h5geo.sr.getAuthName() + ":" + h5geo.sr.getAuthCode()
 LENGTH_UNITS = "m"
@@ -223,6 +224,9 @@ status = geom.generatePRESTKGeometry(
     rec_z,
     ORIENTATION,
     moveRec)
+
+# export geometry to SEGY
+geom.exportToSEGY(out_seis_dir + out_geom_segy_name, 10000, h5geo.Endian.Big)
 
 if not status:
   raise RuntimeError(f"Unable to generate geometry: {out_geom_name}")
